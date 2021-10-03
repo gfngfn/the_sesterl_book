@@ -1,0 +1,6 @@
+[book]
+authors = ["gfngfn"]
+language = "en"
+multilingual = false
+src = "src"
+title = "The Sesterl Book"
