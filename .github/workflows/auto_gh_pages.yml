@@ -1,0 +1,40 @@
+name: auto_gh_pages
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    env:
+      MDBOOK_VERSION: 0.4.13
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install mdbook
+      run: |
+        sudo apt install curl tar
+        mkdir bin
+        eval 'curl -Lo bin/mdbook.tar.gz "https://github.com/rust-lang/mdBook/releases/download/v$MDBOOK_VERSION/mdbook-v$MDBOOK_VERSION-x86_64-unknown-linux-gnu.tar.gz"'
+        tar -xf bin/mdbook.tar.gz -C bin
+        rm bin/mdbook.tar.gz
+        echo "`pwd`/bin" >> $GITHUB_PATH
+    - name: Generate book
+      run: |
+        mdbook build
+    - name: Init new git repo in book folder
+      run: |
+        cd book
+        git init
+        git add -A
+        git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        git config --local user.name "$GITHUB_ACTOR"
+        git commit -m 'Recreate book'
+    - name: Force push to gh-pages branch
+      run: |
+        cd book
+        git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY" HEAD:gh-pages --force
